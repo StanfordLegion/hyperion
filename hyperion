@@ -1,14 +1,15 @@
-#!/bin/sh
+#!/bin/bash
 
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
-source ./hyperion.cfg
+WD=$(pwd)
+source $WD/hyperion.cfg
 
 show_help () { 
     echo "Hyperion is used for performance regression tests."
-    echo "You can find all configuration options with explanations in `hyperion.cfg.`"
+    echo "You can find all configuration options with explanations in hyperion.cfg."
     echo "USAGE: hyperion"
 } 
 
@@ -80,20 +81,20 @@ fi
 
 echo "Building performance test example..."
 
-cd examples/full_circuit
-LG_RT_DIR=../../runtime make
+cd examples/dependent_circuit
+LG_RT_DIR=../../runtime make --silent
 
 # Timed run of example
 
 echo "Running timed example..."
 
-time ./ckt_sim
+RESULT=$(./ckt_sim | grep "ELAPSED TIME" | awk -F= '{print $2}')
 
 # Write benchmark data into run file
 
 echo "Writing out benchmark data..."
 
-# TODO
+echo "time=$RESULT" >> $RUN_FILE
 
 echo "Finished profiling successfully"
 
