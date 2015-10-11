@@ -1,0 +1,100 @@
+#!/bin/sh
+
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+# Initialize our own variables:
+source ./hyperion.cfg
+
+show_help () { 
+    echo "Hyperion is used for performance regression tests."
+    echo "You can find all configuration options with explanations in `hyperion.cfg.`"
+    echo "USAGE: hyperion"
+} 
+
+# Options Parsing
+
+while getopts "h?vf:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    v)  VERBOSE=1
+        ;;
+    f)  RUNS_FOLDER=$OPTARG
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+# Ensure RUNS_FOLDER exists, and we open a run file.
+
+mkdir -p $RUNS_FOLDER
+RUN_TIMESTAMP=$(date +%s)
+RUN_FILE_RELATIVE=$RUNS_FOLDER/$RUN_TIMESTAMP.run
+RUN_FILE=$(echo "$(cd "$(dirname $RUN_FILE_RELATIVE)"; pwd)/$(basename $RUN_FILE_RELATIVE)")
+touch $RUN_FILE
+
+echo "Welcome to Hyperion run $RUN_TIMESTAMP"
+
+# Checkout source
+
+LOCALREPO_VC_DIR=$LOCALREPO/.git
+
+if [ ! -d $LOCALREPO_VC_DIR ]
+then
+    echo "Repo not found. Checking it out..."
+    git clone $REPOSITORY_SOURCE $LOCALREPO
+    cd $LOCALREPO
+else
+    echo "Repo found. Pulling changes..."
+    cd $LOCALREPO && git fetch --all && git reset --hard origin/$BRANCH
+fi
+
+git checkout $BRANCH
+
+# Writes current commit hash into run file
+GIT_COMMIT_HASH=$(git rev-parse --verify HEAD)
+echo "commit=$GIT_COMMIT_HASH" >> $RUN_FILE
+
+# Apply Patches
+
+PATCH_FILE=../circuit_test_parameters.patch
+
+echo "Checking whether current source can be patched..."
+
+if git apply --check $PATCH_FILE
+then
+    echo "Applying patches for more reliable performance tests..."
+    git apply $PATCH_FILE
+else
+    echo "⚡︎ Couldn't apply circuit test parameters patch. Please check for incompatible changes in circuit test."
+    exit 1
+fi
+
+# Build circuit example
+
+echo "Building performance test example..."
+
+cd examples/full_circuit
+LG_RT_DIR=../../runtime make
+
+# Timed run of example
+
+echo "Running timed example..."
+
+time ./ckt_sim
+
+# Write benchmark data into run file
+
+echo "Writing out benchmark data..."
+
+# TODO
+
+echo "Finished profiling successfully"
+
+# EOF
