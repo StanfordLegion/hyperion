@@ -4,26 +4,30 @@
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
+HYPERION_VERSION=$(git rev-parse --verify HEAD)
+COMMIT="0"
 WD=$(pwd)
 source $WD/hyperion.cfg
 
 show_help () { 
     echo "Hyperion is used for performance regression tests."
     echo "You can find all configuration options with explanations in hyperion.cfg."
-    echo "USAGE: hyperion"
+    echo "Options:"
+    echo "If commit is ommitted, HEAD is profiled."
+    echo "USAGE: hyperion [-c commit]"
 } 
 
 # Options Parsing
 
-while getopts "h?vf:" opt; do
+while getopts ":c:f:" opt; do
     case "$opt" in
-    h|\?)
-        show_help
-        exit 0
-        ;;
-    v)  VERBOSE=1
+    c)  COMMIT=$OPTARG
         ;;
     f)  RUNS_FOLDER=$OPTARG
+        ;;
+    *)
+        show_help
+        exit 0
         ;;
     esac
 done
@@ -40,29 +44,67 @@ RUN_FILE_RELATIVE=$RUNS_FOLDER/$RUN_TIMESTAMP.run
 RUN_FILE=$(echo "$(cd "$(dirname $RUN_FILE_RELATIVE)"; pwd)/$(basename $RUN_FILE_RELATIVE)")
 touch $RUN_FILE
 
+# Write simple stats about this run
+echo "HYPERION_VERSION=$HYPERION_VERSION" >> $RUN_FILE
+echo "HOST=$(hostname)" >> $RUN_FILE
+
 echo "Welcome to Hyperion run $RUN_TIMESTAMP"
+echo "RUN_TIMESTAMP=$RUN_TIMESTAMP" >> $RUN_FILE
+
+# Check system load before doing CPU taxing work
+
+# could calculate number of processors: grep processor /proc/cpuinfo | wc -l
+# for now we just abort if load average > 1
+LOAD_AVERAGE=$(uptime | awk -F'load average:' '{ print $2 }' | cut -f3 -d,) #3 is for 15 min average, most reliable # Ubuntu
+#LOAD_AVERAGE=$(uptime | awk -F'load averages:' '{ print $2 }' | cut -f4 -d ' ') #3 is for 15 min average, most reliable # Mac OS X
+comparison_result=$(echo "$LOAD_AVERAGE > 1.0" | bc)
+if [ $comparison_result -eq 1 ]
+then
+    echo "Load Average is $LOAD_AVERAGE, ABORTING RUN."
+    echo "LOAD_AVERAGE_BEFORE_RUN=$LOAD_AVERAGE" >> $RUN_FILE
+    echo "RUN_STATUS=ABORTED" >> $RUN_FILE
+    echo "RUN_STATUS_REASON=SYSTEM_LOAD" >> $RUN_FILE
+    exit 0
+else
+    echo "Load Average is $LOAD_AVERAGE, continuing."
+    echo "LOAD_AVERAGE_BEFORE_RUN=$LOAD_AVERAGE" >> $RUN_FILE
+    echo "RUN_STATUS=GREENLIT" >> $RUN_FILE
+fi
 
 # Checkout source
 
+echo "REPOSITORY_SOURCE=$REPOSITORY_SOURCE" >> $RUN_FILE
 LOCALREPO_VC_DIR=$LOCALREPO/.git
 
 if [ ! -d $LOCALREPO_VC_DIR ]
 then
-    echo "Repo not found. Checking it out..."
+    echo "Local repository not found. Cloning it..."
     git clone $REPOSITORY_SOURCE $LOCALREPO
     cd $LOCALREPO
 else
-    echo "Repo found. Pulling changes..."
+    echo "Local repository found. Pulling changes..."
     cd $LOCALREPO && git fetch --all && git reset --hard origin/$BRANCH
 fi
 
-git checkout $BRANCH
+if [ $COMMIT == "0" ]
+then
+    echo "Checking out branch $BRANCH, going to HEAD"
+    git checkout $BRANCH
+    echo "BRANCH=$BRANCH" >> $RUN_FILE
+else
+    echo "Checking out commit $COMMIT."
+    git checkout $COMMIT
+fi
 
 # Writes current commit hash into run file
 GIT_COMMIT_HASH=$(git rev-parse --verify HEAD)
-echo "commit=$GIT_COMMIT_HASH" >> $RUN_FILE
+echo "COMMIT=$GIT_COMMIT_HASH" >> $RUN_FILE
+echo "RUN_STATUS=CHECKED_OUT" >> $RUN_FILE
 
 # Apply Patches
+
+TIMING_PATCH_COMMIT=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454
+git cherry-pick $TIMING_PATCH_COMMIT 
 
 PATCH_FILE=../circuit_test_parameters.patch
 
@@ -72,23 +114,31 @@ if git apply --check $PATCH_FILE
 then
     echo "Applying patches for more reliable performance tests..."
     git apply $PATCH_FILE
+    echo "RUN_STATUS=PATCHED" >> $RUN_FILE
 else
     echo "⚡︎ Couldn't apply circuit test parameters patch. Please check for incompatible changes in circuit test."
+    echo "RUN_STATUS=ABORTED" >> $RUN_FILE
+    echo "RUN_STATUS_REASON=PATCHING_FAILED" >> $RUN_FILE
     exit 1
 fi
+
+
 
 # Build circuit example
 
 echo "Building performance test example..."
 
 cd examples/dependent_circuit
+LG_RT_DIR=../../runtime make clean --silent
 LG_RT_DIR=../../runtime make --silent
+echo "RUN_STATUS=COMPILED" >> $RUN_FILE
 
 # Timed run of example
 
 echo "Running timed example..."
 
 RESULT=$(./ckt_sim | grep "ELAPSED TIME" | awk -F= '{print $2}')
+echo "RUN_STATUS=RUN" >> $RUN_FILE
 
 # Write benchmark data into run file
 
@@ -97,5 +147,6 @@ echo "Writing out benchmark data..."
 echo "time=$RESULT" >> $RUN_FILE
 
 echo "Finished profiling successfully"
+echo "RUN_STATUS=SUCCEEDED" >> $RUN_FILE
 
 # EOF
