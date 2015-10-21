@@ -9,13 +9,13 @@ COMMIT="0"
 WD=$(pwd)
 source $WD/hyperion.cfg
 
-show_help () { 
+show_help () {
     echo "Hyperion is used for performance regression tests."
     echo "You can find all configuration options with explanations in hyperion.cfg."
     echo "Options:"
     echo "If commit is ommitted, HEAD is profiled."
     echo "USAGE: hyperion [-c commit]"
-} 
+}
 
 # Options Parsing
 
@@ -104,7 +104,7 @@ echo "RUN_STATUS=CHECKED_OUT" >> $RUN_FILE
 # Apply Patches
 
 TIMING_PATCH_COMMIT=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454
-git cherry-pick $TIMING_PATCH_COMMIT 
+git cherry-pick $TIMING_PATCH_COMMIT
 
 PATCH_FILE=../circuit_test_parameters.patch
 
@@ -113,6 +113,7 @@ echo "Checking whether current source can be patched..."
 if git apply --check $PATCH_FILE
 then
     echo "Applying patches for more reliable performance tests..."
+    # circuit.cc has command line switches
     git apply $PATCH_FILE
     echo "RUN_STATUS=PATCHED" >> $RUN_FILE
 else
@@ -130,7 +131,7 @@ echo "Building performance test example..."
 
 cd examples/dependent_circuit
 LG_RT_DIR=../../runtime make clean --silent
-LG_RT_DIR=../../runtime make --silent
+LG_RT_DIR=../../runtime make DEBUG=0 --silent
 echo "RUN_STATUS=COMPILED" >> $RUN_FILE
 
 # Timed run of example
