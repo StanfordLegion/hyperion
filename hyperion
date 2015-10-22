@@ -34,6 +34,13 @@ shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
 
+if [ $COMMIT == "0" ]
+then
+    show_help
+    exit 1
+fi
+
+
 # Write simple stats about this run
 echo "hyperion version: $HYPERION_VERSION"
 echo "host: $(hostname)"
@@ -46,21 +53,21 @@ echo "run timestamp: $RUN_TIMESTAMP"
 
 # could calculate number of processors: grep processor /proc/cpuinfo | wc -l
 # for now we just abort if load average > 1
-LOAD_AVERAGE=$(uptime | awk -F'load average:' '{ print $2 }' | cut -f3 -d,) #3 is for 15 min average, most reliable # Ubuntu
-#LOAD_AVERAGE=$(uptime | awk -F'load averages:' '{ print $2 }' | cut -f4 -d ' ') #3 is for 15 min average, most reliable # Mac OS X
-comparison_result=$(echo "$LOAD_AVERAGE > 1.0" | bc)
-if [ $comparison_result -eq 1 ]
-then
-    # echo "Load Average is $LOAD_AVERAGE, ABORTING RUN."
-    echo "LOAD_AVERAGE_BEFORE_RUN=$LOAD_AVERAGE"
-    echo "RUN_STATUS=ABORTED"
-    echo "RUN_STATUS_REASON=SYSTEM_LOAD"
-    exit 0
-else
-    # echo "Load Average is $LOAD_AVERAGE, continuing."
-    echo "LOAD_AVERAGE_BEFORE_RUN=$LOAD_AVERAGE"
-    echo "RUN_STATUS=GREENLIT"
-fi
+#LOAD_AVERAGE=$(uptime | awk -F'load average:' '{ print $2 }' | cut -f3 -d,) #3 is for 15 min average, most reliable # Ubuntu
+# LOAD_AVERAGE=$(uptime | awk -F'load averages:' '{ print $2 }' | cut -f4 -d ' ') #3 is for 15 min average, most reliable # Mac OS X
+# comparison_result=$(echo "$LOAD_AVERAGE > 1.0" | bc)
+# if [ $comparison_result -eq 1 ]
+# then
+#     # echo "Load Average is $LOAD_AVERAGE, ABORTING RUN."
+#     echo "LOAD_AVERAGE_BEFORE_RUN=$LOAD_AVERAGE"
+#     echo "RUN_STATUS=ABORTED"
+#     echo "RUN_STATUS_REASON=SYSTEM_LOAD"
+#     exit 0
+# else
+#     # echo "Load Average is $LOAD_AVERAGE, continuing."
+#     echo "LOAD_AVERAGE_BEFORE_RUN=$LOAD_AVERAGE"
+#     echo "RUN_STATUS=GREENLIT"
+# fi
 
 # Checkout source
 
@@ -73,19 +80,17 @@ then
     git clone $REPOSITORY_SOURCE $LOCALREPO
     cd $LOCALREPO
 else
-    echo "Local repository found. Pulling changes..."
-    cd $LOCALREPO && git fetch --all && git reset --hard origin/$BRANCH
+    # echo "Local repository found. Pulling changes..."
+    cd $LOCALREPO && git fetch --all && git reset --hard
 fi
 
-if [ $COMMIT == "0" ]
-then
-    echo "Checking out branch $BRANCH, going to HEAD"
-    git checkout $BRANCH
-    echo "BRANCH=$BRANCH"
-else
-    echo "Checking out commit $COMMIT."
-    git checkout $COMMIT
-fi
+# echo "Checking out commit $COMMIT."
+git checkout $COMMIT
+BRANCHES=$(git branch --contains $COMMIT | xargs)
+echo "branches: $BRANCHES"
+
+COMMIT_DATE=$(git show -s --format="%ct" $COMMIT)
+echo "commit date: $COMMIT_DATE"
 
 # Writes current commit hash into run file
 GIT_COMMIT_HASH=$(git rev-parse --verify HEAD)
@@ -94,31 +99,31 @@ echo "RUN_STATUS=CHECKED_OUT"
 
 # Apply Patches
 
+# timing patch for circuit example needs to be applied to run old commits
 TIMING_PATCH_COMMIT=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454
-git cherry-pick $TIMING_PATCH_COMMIT
+git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
 
-PATCH_FILE=../circuit_test_parameters.patch
-
-echo "Checking whether current source can be patched..."
-
-if git apply --check $PATCH_FILE
-then
-    echo "Applying patches for more reliable performance tests..."
-    # circuit.cc has command line switches
-    git apply $PATCH_FILE
-    echo "RUN_STATUS=PATCHED"
-else
-    echo "⚡︎ Couldn't apply circuit test parameters patch. Please check for incompatible changes in circuit test."
-    echo "RUN_STATUS=ABORTED"
-    echo "RUN_STATUS_REASON=PATCHING_FAILED"
-    exit 1
-fi
+# PATCH_FILE=../circuit_test_parameters.patch
+#
+# echo "Checking whether current source can be patched..."
+# if git apply --check $PATCH_FILE
+# then
+#     echo "Applying patches for more reliable performance tests..."
+#     # circuit.cc has command line switches
+#     git apply $PATCH_FILE
+#     echo "RUN_STATUS=PATCHED"
+# else
+#     echo "⚡︎ Couldn't apply circuit test parameters patch. Please check for incompatible changes in circuit test."
+#     echo "RUN_STATUS=ABORTED"
+#     echo "RUN_STATUS_REASON=PATCHING_FAILED"
+#     exit 1
+# fi
 
 
 
 # Build circuit example
 
-echo "Building performance test example..."
+# echo "Building performance test example..."
 
 cd examples/dependent_circuit
 LG_RT_DIR=../../runtime make clean --silent
@@ -127,18 +132,18 @@ echo "RUN_STATUS=COMPILED"
 
 # Timed run of example
 
-echo "Running timed example..."
-
-RESULT=$(./ckt_sim | grep "ELAPSED TIME" | awk -F= '{print $2}')
+# echo "Running timed example..."
+# ./ckt_sim -npp 2500 -wpp 10000 -l 64 #-ll:cpu 2 -ll:csize 8092
+RESULT=$(./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
 echo "RUN_STATUS=RUN"
 
 # Write benchmark data into run file
 
-echo "Writing out benchmark data..."
+# echo "Writing out benchmark data..."
 
 echo "time: $RESULT"
 
-echo "Finished profiling successfully"
+# echo "Finished profiling successfully"
 echo "RUN_STATUS=SUCCEEDED"
 
 # EOF
