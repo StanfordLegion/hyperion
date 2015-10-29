@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Hyperion Scheduler
+
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+# Initialize our own variables:
+HYPERION_SCHEDULER_VERSION=$(git rev-parse --verify HEAD)
+COMMIT="0"
+WD=$(pwd)
+source $WD/hyperion.cfg
+
+show_help () {
+    echo "Hyperion Scheduler is used to  schedule regression tests."
+    echo "You can find all configuration options with explanations in hyperion.cfg."
+    echo "USAGE: scheduler"
+}
+
+# Options Parsing
+
+while getopts ":" opt; do
+    case "$opt" in
+    *)
+        show_help
+        exit 0
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+################################################################################
+
+
+LOCALREPO_VC_DIR=$LOCALREPO/.git
+
+if [ ! -d $LOCALREPO_VC_DIR ]
+then
+    echo "Local repository not found. Cloning it..."
+    git clone $REPOSITORY_SOURCE $LOCALREPO
+    cd $LOCALREPO
+else
+    # echo "Local repository found. Pulling changes..."
+    cd $LOCALREPO && git fetch --all && git reset --hard
+fi
+
+# We're only gettin the 100 most recent commits.
+# -so we never accidentally try to profile every commit in the whole history.
+
+COMMITS_IN_REPO=$(git rev-list --remotes | head -n 100)
+COMMITS_3X_KNOWS=$(3x inputs -v commit | awk -F"=" '{print $2}')
+
+# comm requires sorted inputs, so we sort them
+# -u uniques the sorted lines; more of a sanity check
+# -23 takes the diff ignoring inputs only in 2nd file
+
+NEW_COMMITS=$(comm -23 <( echo $COMMITS_IN_REPO | sort -u ) <( echo $COMMITS_3X_KNOWS | sort -u ) )
+# echo $NEW_COMMITS
+
+for commit in $NEW_COMMITS; do
+  3x define input commit $commit
+  3x plan commit=$commit
+done
