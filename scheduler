@@ -61,6 +61,6 @@ NEW_COMMITS=$(comm -23 <( echo $COMMITS_IN_REPO | sort -u ) <( echo $COMMITS_3X_
 # echo $NEW_COMMITS
 
 for commit in $NEW_COMMITS; do
-  3x define input commit $commit
-  3x plan commit=$commit
+  3x define -f input commit $commit
+  EDITOR=vim 3x plan commit=$commit <<<:wq
 done
