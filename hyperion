@@ -125,7 +125,7 @@ git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
 
 # echo "Building performance test example..."
 
-cd examples/dependent_circuit
+cd examples/full_circuit
 LG_RT_DIR=../../runtime make clean --silent
 LG_RT_DIR=../../runtime make DEBUG=0 --silent
 echo "RUN_STATUS=COMPILED"
