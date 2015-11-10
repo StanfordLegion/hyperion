@@ -50,8 +50,8 @@ fi
 # We're only gettin the 100 most recent commits.
 # -so we never accidentally try to profile every commit in the whole history.
 
-COMMITS_IN_REPO=$(git rev-list --remotes | head -n 100)
-COMMITS_3X_KNOWS=$(3x inputs -v commit | awk -F"=" '{print $2}')
+COMMITS_IN_REPO=$(git rev-list --remotes | head -n 10)
+COMMITS_3X_KNOWS=$(3x inputs -v commit | awk -F"=" '{print $2}' | tr ',' '\n')
 
 # comm requires sorted inputs, so we sort them
 # -u uniques the sorted lines; more of a sanity check
@@ -62,5 +62,5 @@ NEW_COMMITS=$(comm -23 <( echo $COMMITS_IN_REPO | sort -u ) <( echo $COMMITS_3X_
 
 for commit in $NEW_COMMITS; do
   3x define -f input commit $commit
-  EDITOR=vim 3x plan commit=$commit <<<:wq
 done
+3x plan commit=$(tr '\n' ',' < $NEW_COMMITS)

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Setup 3x inputs, outputs
+
+3x setup legion-performance
+
+cd ./legion-performance
+
+3x define program 'cd hyperion && ./hyperion -c $commit'
+# 3x define output 'hyperionVersion' extract 'hyperion version: ' '.+' ''
+# 3x define output 'host' extract 'host: ' '.+' ''
+3x define output 'commitDate':ordinal extract 'commit date: ' '.+' ''
+3x define output 'runTime(s)' extract 'time:\s*' '[.0-9]+' ''
+
+cd program
+git clone git@github.com:ludwigschubert/hyperion.git
+cd ..
+
+3x define input 'commit' '4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454'
+EDITOR=vim 3x plan commit=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454 <<<:wq

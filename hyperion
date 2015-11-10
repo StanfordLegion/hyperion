@@ -1,10 +1,12 @@
 #!/bin/bash
 
+# Hyperion Runner
+
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
-HYPERION_VERSION=$(git rev-parse --verify HEAD)
+HYPERION_RUNNER_VERSION=$(git rev-parse --verify HEAD)
 COMMIT="0"
 WD=$(pwd)
 source $WD/hyperion.cfg
@@ -134,7 +136,8 @@ echo "RUN_STATUS=COMPILED"
 
 # echo "Running timed example..."
 # ./ckt_sim -npp 2500 -wpp 10000 -l 64 #-ll:cpu 2 -ll:csize 8092
-RESULT=$(./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
+RESULT=$(./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" |
+)
 echo "RUN_STATUS=RUN"
 
 # Write benchmark data into run file
