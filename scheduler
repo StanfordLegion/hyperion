@@ -57,10 +57,18 @@ COMMITS_3X_KNOWS=$(3x inputs -v commit | awk -F"=" '{print $2}' | tr ',' '\n')
 # -u uniques the sorted lines; more of a sanity check
 # -23 takes the diff ignoring inputs only in 2nd file
 
-NEW_COMMITS=$(comm -23 <( echo $COMMITS_IN_REPO | sort -u ) <( echo $COMMITS_3X_KNOWS | sort -u ) )
-# echo $NEW_COMMITS
+NEW_COMMITS=$(comm -23 <( echo -e -n "$COMMITS_IN_REPO" | sort -u ) <( echo -e -n "$COMMITS_3X_KNOWS" | sort -u ) )
 
-for commit in $NEW_COMMITS; do
-  3x define -f input commit $commit
-done
-3x plan commit=$(tr '\n' ',' < $NEW_COMMITS)
+NUM_OF_LINES=$(echo -e -n "$NEW_COMMITS" | wc -l)
+
+if (( $NUM_OF_LINES > 0 )); then
+  echo "===== $NUM_OF_LINES new commits:====="
+  echo -e "$NEW_COMMITS"
+  for commit in $NEW_COMMITS; do
+    3x define -f input commit $commit
+    echo "Defining Input for $commit"
+  done
+  EDITOR=vim 3x plan commit=$(echo -e "$NEW_COMMITS" | tr '\n' ',') <<<:wq
+else
+  echo "No new commits"
+fi
