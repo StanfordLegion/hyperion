@@ -8,6 +8,7 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 # Initialize our own variables:
 HYPERION_SCHEDULER_VERSION=$(git rev-parse --verify HEAD)
 COMMIT="0"
+COMMIT_LIMIT="10"
 WD=$(pwd)
 source $WD/hyperion.cfg
 
@@ -19,8 +20,10 @@ show_help () {
 
 # Options Parsing
 
-while getopts ":" opt; do
+while getopts ":l:" opt; do
     case "$opt" in
+    l)  COMMIT_LIMIT=$OPTARG
+        ;;
     *)
         show_help
         exit 0
@@ -50,14 +53,14 @@ fi
 # We're only gettin the 100 most recent commits.
 # -so we never accidentally try to profile every commit in the whole history.
 
-COMMITS_IN_REPO=$(git rev-list --remotes | head -n 10)
-COMMITS_3X_KNOWS=$(3x inputs -v commit | awk -F"=" '{print $2}' | tr ',' '\n')
+COMMITS_IN_REPO=$(git rev-list --remotes | head -n $COMMIT_LIMIT)
+COMMITS_3X_HAS_RUN=$( cd $LOCAL_3X_WORKBENCH && sqlite3 $RELATIVE_3X_DB_FILE "SELECT \"_commit\" FROM \"run\" WHERE \"_runTime\" IS NOT NULL;")
 
 # comm requires sorted inputs, so we sort them
 # -u uniques the sorted lines; more of a sanity check
 # -23 takes the diff ignoring inputs only in 2nd file
 
-NEW_COMMITS=$(comm -23 <( echo -e -n "$COMMITS_IN_REPO" | sort -u ) <( echo -e -n "$COMMITS_3X_KNOWS" | sort -u ) )
+NEW_COMMITS=$(comm -23 <( echo -e -n "$COMMITS_IN_REPO" | sort -u ) <( echo -e -n "$COMMITS_3X_HAS_RUN" | sort -u ) )
 
 NUM_OF_LINES=$(echo -e -n "$NEW_COMMITS" | wc -l)
 
