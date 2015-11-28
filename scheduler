@@ -15,7 +15,7 @@ source $WD/hyperion.cfg
 show_help () {
     echo "Hyperion Scheduler is used to  schedule regression tests."
     echo "You can find all configuration options with explanations in hyperion.cfg."
-    echo "USAGE: scheduler"
+    echo "USAGE: scheduler [-l maximum number of commits to schedule]"
 }
 
 # Options Parsing
@@ -50,7 +50,7 @@ else
     cd $LOCALREPO && git fetch --all && git reset --hard
 fi
 
-# We're only gettin the 100 most recent commits.
+# We're only gettin the $COMMIT_LIMIT most recent commits.
 # -so we never accidentally try to profile every commit in the whole history.
 
 COMMITS_IN_REPO=$(git rev-list --remotes | head -n $COMMIT_LIMIT)
@@ -61,11 +61,10 @@ COMMITS_3X_HAS_RUN=$( cd $LOCAL_3X_WORKBENCH && sqlite3 $RELATIVE_3X_DB_FILE "SE
 # -23 takes the diff ignoring inputs only in 2nd file
 
 NEW_COMMITS=$(comm -23 <( echo -e -n "$COMMITS_IN_REPO" | sort -u ) <( echo -e -n "$COMMITS_3X_HAS_RUN" | sort -u ) )
+NUM_OF_NEW_COMMITS=$(echo -e -n "$NEW_COMMITS" | wc -l)
 
-NUM_OF_LINES=$(echo -e -n "$NEW_COMMITS" | wc -l)
-
-if (( $NUM_OF_LINES > 0 )); then
-  echo "===== $NUM_OF_LINES new commits:====="
+if (( $NUM_OF_NEW_COMMITS > 0 )); then
+  echo "===== $NUM_OF_NEW_COMMITS new commits:====="
   echo -e "$NEW_COMMITS"
   for commit in $NEW_COMMITS; do
     3x define -f input commit $commit
