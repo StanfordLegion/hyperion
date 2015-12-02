@@ -28,7 +28,9 @@ echo "RUN_STATUS=COMPILED"
 # They will be accessible in the 3x run folder.
 # ##########################################################################
 
-RESULT=$(mpirun --host n0001,n0002,n0003,n0004 -np 4 ./ckt_sim -npp 512 -wpp 128 -l 256 | grep "ELAPSED TIME" | awk -F= '{print $2}')
+CIRCUIT_SIMULATION="./ckt_sim -npp 2500 -wpp 10000 -p 16 -l 32 -ll:cpu 8 -ll:csize 8092"
+
+RESULT=$(mpirun --host n0000,n0001,n0002,n0003 --bind-to none -np 4 $CIRCUIT_SIMULATION | grep "ELAPSED TIME" | awk -F= '{print $2}')
 
 # ##########################################################################
 # END RUN STAGE
