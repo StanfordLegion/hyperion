@@ -8,6 +8,7 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 # Initialize our own variables:
 HYPERION_RUNNER_VERSION=$(git rev-parse --verify HEAD)
 COMMIT="0"
+TASK="shared_lowlevel"
 WD=$(pwd)
 source $WD/hyperion.cfg
 
@@ -15,15 +16,18 @@ show_help () {
     echo "Hyperion is used for performance regression tests."
     echo "You can find all configuration options with explanations in hyperion.cfg."
     echo "Options:"
-    echo "If commit is ommitted, HEAD is profiled."
-    echo "USAGE: hyperion [-c commit]"
+    echo "[commit] If commit is ommitted, HEAD is profiled."
+    echo "[taskname] If taskname is ommitted, shared runtime test is profiled."
+    echo "USAGE: hyperion [-t taskname] [-c commit]"
 }
 
 # Options Parsing
 
-while getopts ":c:" opt; do
+while getopts ":c:t:" opt; do
     case "$opt" in
     c)  COMMIT=$OPTARG
+        ;;
+    t)  TASK=$OPTARG
         ;;
     *)
         show_help
@@ -105,48 +109,9 @@ echo "RUN_STATUS=CHECKED_OUT"
 TIMING_PATCH_COMMIT=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454
 git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
 
-# PATCH_FILE=../circuit_test_parameters.patch
-#
-# echo "Checking whether current source can be patched..."
-# if git apply --check $PATCH_FILE
-# then
-#     echo "Applying patches for more reliable performance tests..."
-#     # circuit.cc has command line switches
-#     git apply $PATCH_FILE
-#     echo "RUN_STATUS=PATCHED"
-# else
-#     echo "⚡︎ Couldn't apply circuit test parameters patch. Please check for incompatible changes in circuit test."
-#     echo "RUN_STATUS=ABORTED"
-#     echo "RUN_STATUS_REASON=PATCHING_FAILED"
-#     exit 1
-# fi
+# Execute task with runtime measurement
 
-
-
-# Build circuit example
-
-# echo "Building performance test example..."
-
-cd examples/full_circuit
-module load cuda/7.0
-module load mpi/openmpi/1.8.2
-module load gasnet/1.22.4-openmpi
-LG_RT_DIR=../../runtime make clean
-LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 USE_CUDA=1 --silent
-echo "RUN_STATUS=COMPILED"
-
-# Timed run of example
-
-# echo "Running timed example..."
-# ./ckt_sim -npp 2500 -wpp 10000 -l 64 #-ll:cpu 2 -ll:csize 8092
-RESULT=$(./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
-echo "RUN_STATUS=RUN"
-
-# Write benchmark data into run file
-
-# echo "Writing out benchmark data..."
-
-echo "time: $RESULT"
+./tasks/$TASK
 
 # echo "Finished profiling successfully"
 echo "RUN_STATUS=SUCCEEDED"

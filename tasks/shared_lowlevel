@@ -1,0 +1,36 @@
+# Hyperion Task Template
+
+# ##########################################################################
+# COMPILATION STAGE
+# You're in the root folder of the legion runtime
+# Please ensure you're loading all required modules yourself.
+# Clean your build target or you might be running an outdated build
+# ##########################################################################
+
+cd examples/full_circuit
+LG_RT_DIR=../../runtime make clean --silent
+LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=1 --silent
+
+
+# ##########################################################################
+# END COMPILATION STAGE
+# ##########################################################################
+
+echo "RUN_STATUS=COMPILED"
+
+# ##########################################################################
+# RUN STAGE
+# Please extract time measurement into RESULT variable.
+# Feel free to create other outputs such as profiling results
+# They will be accessible in the 3x run folder.
+# ##########################################################################
+
+RESULT=$(./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
+
+# ##########################################################################
+# END RUN STAGE
+# ##########################################################################
+
+echo "RUN_STATUS=RUN"
+
+echo "time: $RESULT"
