@@ -128,8 +128,11 @@ git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
 # echo "Building performance test example..."
 
 cd examples/full_circuit
-LG_RT_DIR=../../runtime make clean --silent
-LG_RT_DIR=../../runtime make DEBUG=0 --silent
+module load cuda/7.0
+module load mpi/openmpi/1.8.2
+module load gasnet/1.22.4-openmpi
+LG_RT_DIR=../../runtime make clean
+LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 USE_CUDA=1 --silent
 echo "RUN_STATUS=COMPILED"
 
 # Timed run of example
