@@ -104,10 +104,10 @@ echo "commit: $GIT_COMMIT_HASH"
 echo "RUN_STATUS=CHECKED_OUT"
 
 # Apply Patches
-
+# no longer needed
 # timing patch for circuit example needs to be applied to run old commits
-TIMING_PATCH_COMMIT=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454
-git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
+#TIMING_PATCH_COMMIT=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454
+#git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
 
 # Execute task with runtime measurement
 

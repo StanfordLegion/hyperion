@@ -42,6 +42,7 @@ shift $((OPTIND-1))
 TASK_NAMES=$(ls $WD/tasks)
 for task_name in $TASK_NAMES; do
   3x define -f input task $task_name
+  chmod +x $WD/tasks/$task_name
   echo "Defined Input for $task_name"
 done
 
@@ -72,6 +73,9 @@ COMMITS_3X_HAS_RUN=$( cd $LOCAL_3X_WORKBENCH && sqlite3 $RELATIVE_3X_DB_FILE "SE
 NEW_COMMITS=$(comm -23 <( echo -e -n "$COMMITS_IN_REPO" | sort -u ) <( echo -e -n "$COMMITS_3X_HAS_RUN" | sort -u ) )
 NUM_OF_NEW_COMMITS=$(echo -e -n "$NEW_COMMITS" | wc -l)
 
+# Function to join arrays of strings
+function join { local IFS="$1"; shift; echo "$*"; }
+
 if (( $NUM_OF_NEW_COMMITS > 0 )); then
   echo "===== $NUM_OF_NEW_COMMITS new commits:====="
   echo -e "$NEW_COMMITS"
@@ -79,8 +83,8 @@ if (( $NUM_OF_NEW_COMMITS > 0 )); then
     3x define -f input commit $commit
     echo "Defining Input for $commit"
   done
-  COMMITS=$(echo -e -n "$NEW_COMMITS" | tr '[:blank:]' ',')
-  TASKS=$(echo -e -n "$TASK_NAMES" | tr '[:blank:]' ',')
+  COMMITS= join , $NEW_COMMITS
+  TASKS= join , $TASK_NAMES
   EDITOR=vim 3x plan commit=$COMMITS task=$TASKS <<<:wq
 else
   echo "No new commits"
