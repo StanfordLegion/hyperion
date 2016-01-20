@@ -2,8 +2,8 @@
 
 # Hyperion Scheduler
 
-# A POSIX variable
-OPTIND=1         # Reset in case getopts has been used previously in the shell.
+# Reset in case getopts has been used previously in the shell.
+OPTIND=1
 
 # Initialize our own variables:
 HYPERION_SCHEDULER_VERSION=$(git rev-parse --verify HEAD)
@@ -37,6 +37,15 @@ shift $((OPTIND-1))
 
 ################################################################################
 
+# Ensure all tasks are defined
+
+TASK_NAMES=$(ls $WD/tasks)
+for task_name in $TASK_NAMES; do
+  3x define -f input task $task_name
+  echo "Defined Input for $task_name"
+done
+
+# Clone legion repository
 
 LOCALREPO_VC_DIR=$LOCALREPO/.git
 
@@ -70,7 +79,9 @@ if (( $NUM_OF_NEW_COMMITS > 0 )); then
     3x define -f input commit $commit
     echo "Defining Input for $commit"
   done
-  EDITOR=vim 3x plan commit=$(echo -e "$NEW_COMMITS" | tr '\n' ',') <<<:wq
+  COMMITS=$(echo -e -n "$NEW_COMMITS" | tr '[:blank:]' ',')
+  TASKS=$(echo -e -n "$TASK_NAMES" | tr '[:blank:]' ',')
+  EDITOR=vim 3x plan commit=$COMMITS task=$TASKS <<<:wq
 else
   echo "No new commits"
 fi

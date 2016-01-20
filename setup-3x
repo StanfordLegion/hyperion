@@ -17,4 +17,5 @@ git clone git@github.com:ludwigschubert/hyperion.git
 cd ..
 
 3x define input 'commit' '4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454'
+3x define input 'task' 'shared_lowlevel'
 EDITOR=vim 3x plan commit=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454 <<<:wq
