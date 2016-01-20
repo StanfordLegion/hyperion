@@ -111,7 +111,7 @@ git cherry-pick $TIMING_PATCH_COMMIT --keep-redundant-commits
 
 # Execute task with runtime measurement
 
-./tasks/$TASK
+$WD/tasks/$TASK
 
 # echo "Finished profiling successfully"
 echo "RUN_STATUS=SUCCEEDED"
