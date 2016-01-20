@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Hyperion Updater
+
+# Ensures hyperion gets updated once a day from git before executing tasks
+# This is not a part of hyperion/scheduler to allow manual testing of tasks
+# on sapling first.
+
+set -e
+
+# Get configuration variables
+
+WD=$(pwd)
+source $WD/hyperion.cfg
+
+################################################################################
+
+cd $LOCAL_3X_WORKBENCH/program/hyperion
+
+GIT_FETCH_REMOTE=$(git remote -v | grep 'fetch')
+
+if [[ $GIT_FETCH_REMOTE == *"hyperion"* ]]
+then
+  # We are probably in the repository we expect
+  # So we can safely update
+  git fetch origin master
+  git reset --hard FETCH_HEAD
+  git clean -df
+else
+  echo "Not sure where we are or what's going on."
+  echo "But we're not going to delete any of your stuff."
+  exit 1
+fi
+
