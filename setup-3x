@@ -19,3 +19,6 @@ cd ..
 3x define input 'commit' '4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454'
 3x define input 'task' 'shared_lowlevel'
 EDITOR=vim 3x plan commit=4ca4ce62692f85a1e4c7b16e7edf35e3dfe25454 <<<:wq
+
+
+# 0 3 * * * cd /home/ludwig/legion-performance/program/hyperion ; ./scheduler ; curl https://nosnch.in/a4157b4158 &> /dev/null
