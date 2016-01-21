@@ -2,7 +2,7 @@
 
 # ##########################################################################
 # COMPILATION STAGE
-# You're in the root folder of the legion runtime
+# The root folder of legion is available in $LG_DIR.
 # Please ensure you're loading all required modules yourself.
 # Clean your build target or you might be running an outdated build
 # ##########################################################################
@@ -25,7 +25,9 @@ echo "RUN_STATUS=COMPILED"
 # They will be accessible in the 3x run folder.
 # ##########################################################################
 
-LG_RT_DIR=../legion/runtime LEGION_SPY_PATH=../legion/tools/legion_spy.py TEST_DIR=./tests python main.py
+# TODO: hardcode TEST_DIR, default LEGION_SPY_PATH from LG_RT_DIR if not passed
+
+LG_RT_DIR=$LG_DIR/runtime LEGION_SPY_PATH=$LG_DIR/tools/legion_spy.py TEST_DIR=$LG_DIR/fuzz-tester/tests python main.py
 
 # ##########################################################################
 # END RUN STAGE

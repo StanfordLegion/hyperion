@@ -111,7 +111,7 @@ echo "RUN_STATUS=CHECKED_OUT"
 
 # Execute task with runtime measurement
 
-$WD/tasks/$TASK
+LG_DIR=$(pwd) $WD/tasks/$TASK
 
 # echo "Finished profiling successfully"
 echo "RUN_STATUS=SUCCEEDED"
