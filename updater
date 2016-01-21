@@ -26,6 +26,11 @@ then
   git fetch origin master
   git reset --hard FETCH_HEAD
   git clean -df
+
+  chmod +x updater
+  chmod +x scheduler
+  chmod +x hyperion # TODO should REALLY be renamed to 'runner'
+
 else
   echo "Not sure where we are or what's going on."
   echo "But we're not going to delete any of your stuff."
