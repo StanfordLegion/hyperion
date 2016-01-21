@@ -25,7 +25,7 @@ echo "RUN_STATUS=COMPILED"
 # They will be accessible in the 3x run folder.
 # ##########################################################################
 
-LG_RT_DIR=../runtime LEGION_SPY_PATH=../tools/legion_spy.py TEST_DIR=./tests python main.py
+LG_RT_DIR=$LOCALREPO/runtime/ LEGION_SPY_PATH=$LOCALREPO/tools/legion_spy.py TEST_DIR=./tests python main.py
 
 # ##########################################################################
 # END RUN STAGE
