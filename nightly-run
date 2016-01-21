@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Hyperion Nightly Run
+
+# Runs all tasks needed for a nightly operation, including self updating.
+# This should be triggered by a cron job that you will be able to install
+# in the future. :-) For now it exists on sapling.
+
+set -e
+
+# Get configuration variables
+
+WD=$(pwd)
+source $WD/hyperion.cfg
+
+################################################################################
+
+./updater
+./scheduler
+
+# Ping DeadMan'sSnitch (Monitoring Service)
+curl https://nosnch.in/a4157b4158
