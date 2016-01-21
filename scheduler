@@ -42,7 +42,6 @@ shift $((OPTIND-1))
 TASK_NAMES=$(ls $WD/tasks)
 for task_name in $TASK_NAMES; do
   3x define -f input task $task_name
-  chmod +x $WD/tasks/$task_name
   echo "Defined Input for $task_name"
 done
 

@@ -30,6 +30,7 @@ then
   chmod +x updater
   chmod +x scheduler
   chmod +x hyperion # TODO should REALLY be renamed to 'runner'
+  chmod +x tasks/*
 
 else
   echo "Not sure where we are or what's going on."
