@@ -1,3 +1,6 @@
+#!/bin/bash -i
+# This session is interactive so we can use 'module'
+
 # Hyperion Task Template
 
 # ##########################################################################
