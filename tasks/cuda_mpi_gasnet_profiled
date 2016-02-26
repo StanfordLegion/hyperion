@@ -13,9 +13,9 @@ cd examples/full_circuit
 
 MODULE=/usr/local/modules-3.2.10/bin/modulecmd
 
-MODULE bash load cuda/7.0
-MODULE bash load mpi/openmpi/1.8.2
-MODULE bash load gasnet/1.22.4-openmpi
+$MODULE bash load cuda/7.0
+$MODULE bash load mpi/openmpi/1.8.2
+$MODULE bash load gasnet/1.22.4-openmpi
 
 LG_RT_DIR=../../runtime make clean
 LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 USE_CUDA=1 -DLEGION_PROF --silent
