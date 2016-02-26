@@ -3,6 +3,16 @@
 # Hyperion Task Template
 
 # ##########################################################################
+# MODULE DEPENDENCIES
+# Please ensure you're loading all required modules here.
+# ##########################################################################
+
+source /usr/local/modules-3.2.10/init/bash
+
+module load mpi/openmpi/1.8.2
+module load gasnet/1.22.4-openmpi
+
+# ##########################################################################
 # COMPILATION STAGE
 # The root folder of legion is available in $LG_DIR.
 # Please ensure you're loading all required modules yourself.
