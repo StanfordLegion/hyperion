@@ -10,7 +10,6 @@ set -e
 
 # Get configuration variables
 
-USER=$(whoami)
 HYPERION_SOURCE="git://github.com/StanfordLegion/hyperion.git"
 
 ################################################################################
@@ -32,5 +31,7 @@ cd ~
 
 echo "Installing nightly-run crontab..."
 
-CRON_ENTRY="0 3 * * * cd /home/$USER/legion-performance/program/hyperion ; ./nightly-run &> /dev/null"
+CRON_ENTRY="0 3 * * * cd /home/$USER/legion-performance/program/hyperion; ./nightly-run &> /dev/null"
 cat < (crontab -l) |grep -v "${CRON_ENTRY}" < (echo "${CRON_ENTRY}")
+
+echo "Done! Tests will now be run nightly."
