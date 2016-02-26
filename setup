@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Hyperion Setup
+
+# Depends on 3x already being installed and on path.
+# Installs the legion-performance workbench into this users home directory
+# Also sets up a nightly-run crontab entry
+
+set -e
+
+# Get configuration variables
+
+USER=$(whoami)
+HYPERION_SOURCE="git://github.com/StanfordLegion/hyperion.git"
+
+################################################################################
+
+echo "Setting up 3x workbench 'legion-performance'..."
+
+cd ~
+3x setup legion-performance
+cd legion-performance
+3x define program 'cd hyperion && ./hyperion -c $commit'
+3x define output 'commitDate':ordinal extract 'commit date: ' '.+' ''
+3x define output 'runTime(s)' extract 'time:\s*' '[.0-9]+' ''
+
+echo "Getting Hyperion..."
+
+cd program
+git clone HYPERION_SOURCE
+cd ~
+
+echo "Installing nightly-run crontab..."
+
+CRON_ENTRY="0 3 * * * cd /home/$USER/legion-performance/program/hyperion ; ./nightly-run &> /dev/null"
+cat < (crontab -l) |grep -v "${CRON_ENTRY}" < (echo "${CRON_ENTRY}")
