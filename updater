@@ -26,12 +26,12 @@ then
   git fetch origin master
   git reset --hard FETCH_HEAD
   git clean -df
-
+  # Make updated things executable again
+  chmod +x nightly-run
   chmod +x updater
   chmod +x scheduler
   chmod +x hyperion # TODO should REALLY be renamed to 'runner'
   chmod +x tasks/*
-
 else
   echo "Not sure where we are or what's going on."
   echo "But we're not going to delete any of your stuff."
