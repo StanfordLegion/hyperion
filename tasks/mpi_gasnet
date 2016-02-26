@@ -1,5 +1,4 @@
-#!/bin/bash -i
-# This session is interactive so we can use 'module'
+#!/bin/bash
 
 # Hyperion Task Template
 
@@ -11,9 +10,14 @@
 # ##########################################################################
 
 cd examples/full_circuit
+
+MODULE=/usr/local/modules-3.2.10/bin/modulecmd
+
+MODULE bash load mpi/openmpi/1.8.2
+MODULE bash load gasnet/1.22.4-openmpi
+
 LG_RT_DIR=../../runtime make clean --silent
 LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 --silent
-
 
 # ##########################################################################
 # END COMPILATION STAGE
@@ -37,3 +41,5 @@ RESULT=$(mpirun --host n0001,n0002,n0003 -np 4 ./ckt_sim -npp 512 -wpp 1024 -l 1
 echo "RUN_STATUS=RUN"
 
 echo "time: $RESULT"
+
+return 0

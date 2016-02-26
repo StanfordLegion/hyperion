@@ -1,5 +1,4 @@
-#!/bin/bash -i
-# This session is interactive so we can use 'module'
+#!/bin/bash
 
 # Hyperion Task Template
 
@@ -34,3 +33,5 @@ LG_RT_DIR=$LG_DIR/runtime python main.py
 # ##########################################################################
 
 echo "RUN_STATUS=RUN"
+
+return 0
