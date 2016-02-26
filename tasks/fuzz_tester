@@ -9,6 +9,7 @@
 
 rm -rf fuzz-tester
 git clone https://github.com/StanfordLegion/fuzz-tester.git
+cd fuzz-tester
 
 # ##########################################################################
 # END COMPILATION STAGE
