@@ -4,13 +4,16 @@
 # COMPILATION STAGE
 # You're in the root folder of the legion runtime
 # Please ensure you're loading all required modules yourself.
-# Clean your build target or you might be running an outdated build
 # ##########################################################################
 
 cd examples/full_circuit
-LG_RT_DIR=../../runtime make clean --silent
-LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=1 --silent
 
+module load cuda/7.0
+module load mpi/openmpi/1.8.2
+module load gasnet/1.22.4-openmpi
+
+LG_RT_DIR=../../runtime make clean
+LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 USE_CUDA=1 -DLEGION_PROF --silent
 
 # ##########################################################################
 # END COMPILATION STAGE
@@ -20,12 +23,12 @@ echo "RUN_STATUS=COMPILED"
 
 # ##########################################################################
 # RUN STAGE
-# Please extract time measurement into RESULT variable.
+# Please extract your time measurement into RESULT variable.
 # Feel free to create other outputs such as profiling results
 # They will be accessible in the 3x run folder.
 # ##########################################################################
 
-RESULT=$(./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
+RESULT=$(mpirun --host n0001,n0002,n0003 -np 4  ./ckt_sim -npp 512 -wpp 128 -l 256 | grep "ELAPSED TIME" | awk -F= '{print $2}')
 
 # ##########################################################################
 # END RUN STAGE

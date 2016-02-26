@@ -2,13 +2,15 @@
 
 # ##########################################################################
 # COMPILATION STAGE
-# The root folder of legion is available in $LG_DIR.
+# You're in the root folder of the legion runtime
 # Please ensure you're loading all required modules yourself.
 # Clean your build target or you might be running an outdated build
 # ##########################################################################
 
-rm -rf fuzz-tester
-git clone https://github.com/StanfordLegion/fuzz-tester.git
+cd examples/full_circuit
+LG_RT_DIR=../../runtime make clean --silent
+LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 --silent
+
 
 # ##########################################################################
 # END COMPILATION STAGE
@@ -18,15 +20,17 @@ echo "RUN_STATUS=COMPILED"
 
 # ##########################################################################
 # RUN STAGE
-# Please extract time measurements into the RESULT variable.
+# Please extract time measurement into RESULT variable.
 # Feel free to create other outputs such as profiling results
 # They will be accessible in the 3x run folder.
 # ##########################################################################
 
-LG_RT_DIR=$LG_DIR/runtime python main.py
+RESULT=$(mpirun --host n0001,n0002,n0003 -np 4 ./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
 
 # ##########################################################################
 # END RUN STAGE
 # ##########################################################################
 
 echo "RUN_STATUS=RUN"
+
+echo "time: $RESULT"
