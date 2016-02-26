@@ -45,5 +45,3 @@ LG_RT_DIR=$LG_DIR/runtime python main.py
 # ##########################################################################
 
 echo "RUN_STATUS=RUN"
-
-return 0
