@@ -19,7 +19,7 @@ echo "Setting up 3x workbench 'legion-performance'..."
 cd ~
 3x setup legion-performance
 cd legion-performance
-3x define program 'cd hyperion && ./hyperion -c $commit'
+3x define program 'cd hyperion && ./hyperion -c $commit -t $task'
 3x define output 'commitDate':ordinal extract 'commit date: ' '.+' ''
 3x define output 'runTime(s)' extract 'time:\s*' '[.0-9]+' ''
 

@@ -10,7 +10,6 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 # Initialize our own variables:
 HYPERION_RUNNER_VERSION=$(git rev-parse --verify HEAD)
 COMMIT="0"
-TASK="shared_lowlevel"
 WD=$(pwd)
 source $WD/hyperion.cfg
 
@@ -19,7 +18,7 @@ show_help () {
     echo "You can find all configuration options with explanations in hyperion.cfg."
     echo "Options:"
     echo "[commit] If commit is ommitted, HEAD is profiled."
-    echo "[taskname] If taskname is ommitted, shared runtime test is profiled."
+    echo "[taskname] Name of script in tasks subfolder to run, e.g. 'mpi_gasnet'."
     echo "USAGE: hyperion [-t taskname] [-c commit]"
 }
 
