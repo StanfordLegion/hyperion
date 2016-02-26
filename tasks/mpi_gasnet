@@ -2,6 +2,8 @@
 
 # Hyperion Task Template
 
+set -e
+
 # ##########################################################################
 # MODULE DEPENDENCIES
 # Please ensure you're loading all required modules here.
