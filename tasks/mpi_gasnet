@@ -24,7 +24,7 @@ module load gasnet/1.22.4-openmpi
 cd examples/full_circuit
 
 LG_RT_DIR=../../runtime make clean --silent
-LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 --silent
+LG_RT_DIR=../../runtime make DEBUG=0 SHARED_LOWLEVEL=0 USE_GASNET=1 --silent
 
 # ##########################################################################
 # END COMPILATION STAGE
@@ -39,7 +39,11 @@ echo "RUN_STATUS=COMPILED"
 # They will be accessible in the 3x run folder.
 # ##########################################################################
 
-RESULT=$(mpirun --host n0001,n0002,n0003 -np 4 ./ckt_sim -npp 512 -wpp 1024 -l 128 | grep "ELAPSED TIME" | awk -F= '{print $2}')
+MPIRUN="mpirun --host n0000,n0001,n0002,n0003 -np 4 --bind-to none"
+CKT_SIM_FLAGS="-npp 512 -wpp 128 -l 256"
+CAPTURE_TIME="grep "ELAPSED TIME" | awk -F= '{print $2}'"
+
+RESULT=$($MPIRUN ./ckt_sim $CKT_SIM_FLAGS | $CAPTURE_TIME)
 
 # ##########################################################################
 # END RUN STAGE
