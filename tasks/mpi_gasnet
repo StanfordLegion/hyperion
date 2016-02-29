@@ -40,8 +40,8 @@ echo "RUN_STATUS=COMPILED"
 # ##########################################################################
 
 MPIRUN="mpirun --host n0000,n0001,n0002,n0003 -np 4 --bind-to none"
-CKT_SIM_FLAGS="-npp 512 -wpp 128 -l 256"
-CAPTURE_TIME="grep \"ELAPSED TIME\" | awk -F= '{print $2}'"
+CKT_SIM_FLAGS="-npp 512 -wpp 512 -l 256"
+CAPTURE_TIME="grep 'ELAPSED TIME' | awk -F= '{print $2}'"
 
 RESULT=$($MPIRUN ./ckt_sim $CKT_SIM_FLAGS | $CAPTURE_TIME)
 

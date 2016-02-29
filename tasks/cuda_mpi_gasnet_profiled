@@ -41,9 +41,9 @@ echo "RUN_STATUS=COMPILED"
 # ##########################################################################
 
 MPIRUN="mpirun --host n0000,n0001,n0002,n0003 -np 4 --bind-to none"
-FLAGS="-npp 512 -wpp 128 -l 256"
+FLAGS="-npp 512 -wpp 512 -l 256"
 PROF_FLAGS="-level 2 -cat legion_prof -logfile prof_% -hl:prof 4"
-CAPTURE_TIME="grep "ELAPSED TIME" | awk -F= '{print $2}'"
+CAPTURE_TIME="grep 'ELAPSED TIME' | awk -F= '{print $2}'"
 
 RESULT=$($MPIRUN ./ckt_sim $FLAGS $PROF_FLAGS | $CAPTURE_TIME)
 
